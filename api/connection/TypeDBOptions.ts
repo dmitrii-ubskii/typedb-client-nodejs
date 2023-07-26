@@ -19,186 +19,113 @@
  * under the License.
  */
 
-import {Options} from "typedb-protocol/common/options_pb";
-import {ErrorMessage} from "../../common/errors/ErrorMessage";
 import {TypeDBClientError} from "../../common/errors/TypeDBClientError";
-import NEGATIVE_VALUE_NOT_ALLOWED = ErrorMessage.Client.NEGATIVE_VALUE_NOT_ALLOWED;
+import {ErrorMessage} from "../../common/errors/ErrorMessage";
+import POSITIVE_VALUE_REQUIRED = ErrorMessage.Client.POSITIVE_VALUE_REQUIRED;
 
-namespace Opts {
-    export interface Core {
-        infer?: boolean;
-        traceInference?: boolean;
-        explain?: boolean;
-        parallel?: boolean;
-        prefetchSize?: number;
-        prefetch?: boolean;
-        sessionIdleTimeoutMillis?: number;
-        transactionTimeoutMillis?: number;
-        schemaLockAcquireTimeoutMillis?: number;
-    }
+const ffi = require("../typedb_client_nodejs");
 
-    export interface Cluster extends Core {
-        readAnyReplica?: boolean;
-    }
+export class TypeDBOptions {
+    private readonly _nativeObject: object;
 
-    export function proto(options: TypeDBOptions): Options {
-        const optionsProto = new Options();
-        if (options) {
-            if (options.infer != null) optionsProto.setInfer(options.infer);
-            if (options.traceInference != null) optionsProto.setTraceInference(options.traceInference);
-            if (options.explain != null) optionsProto.setExplain(options.explain);
-            if (options.parallel != null) optionsProto.setParallel(options.parallel);
-            if (options.prefetchSize != null) optionsProto.setPrefetchSize(options.prefetchSize);
-            if (options.prefetch != null) optionsProto.setPrefetch(options.prefetch);
-            if (options.sessionIdleTimeoutMillis != null) optionsProto.setSessionIdleTimeoutMillis(options.sessionIdleTimeoutMillis);
-            if (options.transactionTimeoutMillis != null) optionsProto.setTransactionTimeoutMillis(options.transactionTimeoutMillis);
-            if (options.schemaLockAcquireTimeoutMillis != null) optionsProto.setSchemaLockAcquireTimeoutMillis(options.schemaLockAcquireTimeoutMillis);
-            if (options.isCluster()) {
-                const clusterOptions = options as Opts.Cluster;
-                if (clusterOptions.readAnyReplica != null) optionsProto.setReadAnyReplica(clusterOptions.readAnyReplica);
-            }
-        }
-        return optionsProto;
-    }
-}
-
-export class TypeDBOptions implements Opts.Core {
-
-    private _infer: boolean;
-    private _traceInference: boolean;
-    private _explain: boolean;
-    private _parallel: boolean;
-    private _prefetchSize: number;
-    private _prefetch: boolean;
-    private _sessionIdleTimeoutMillis: number;
-    private _transactionTimeoutMillis: number;
-    private _schemaLockAcquireTimeoutMillis: number;
-
-    constructor(obj: { [K in keyof Opts.Core]: Opts.Core[K] } = {}) {
-        Object.assign(this, obj);
-    }
-
-    isCluster(): boolean {
-        return false;
-    }
-
-    proto(): Options {
-        return Opts.proto(this);
+    constructor() {
+        this._nativeObject = ffi.options_new();
     }
 
     get infer() {
-        return this._infer;
+        if (ffi.options_has_infer(this._nativeObject)) return ffi.options_get_infer(this._nativeObject);
+        else return null;
     }
 
     set infer(value: boolean) {
-        this._infer = value;
+        ffi.options_set_infer(this._nativeObject, value);
     }
 
     get traceInference() {
-        return this._traceInference;
+        if (ffi.options_has_trace_inference(this._nativeObject)) return ffi.options_get_trace_inference(this._nativeObject); else return null;
     }
 
     set traceInference(value: boolean) {
-        this._traceInference = value;
+        ffi.options_set_trace_inference(this._nativeObject, value);
     }
 
     get explain() {
-        return this._explain;
+        if (ffi.options_has_explain(this._nativeObject)) return ffi.options_get_explain(this._nativeObject); else return null;
     }
 
     set explain(value: boolean) {
-        this._explain = value;
+        ffi.options_set_explain(this._nativeObject, value);
     }
 
     get parallel() {
-        return this._parallel;
+        if (ffi.options_has_parallel(this._nativeObject)) return ffi.options_get_parallel(this._nativeObject); else return null;
     }
 
     set parallel(value: boolean) {
-        this._parallel = value;
+        ffi.options_set_parallel(this._nativeObject, value);
     }
 
     get prefetch() {
-        return this._prefetch;
+        if (ffi.options_has_prefetch(this._nativeObject)) return ffi.options_get_prefetch(this._nativeObject); else return null;
     }
 
     set prefetch(value: boolean) {
-        this._prefetch = value;
+        ffi.options_set_prefetch(this._nativeObject, value);
     }
 
     get prefetchSize() {
-        return this._prefetchSize;
+        if (ffi.options_has_prefetch_size(this._nativeObject)) return ffi.options_get_prefetch_size(this._nativeObject); else return null;
     }
 
     set prefetchSize(value: number) {
         if (value < 1) {
-            throw new TypeDBClientError(NEGATIVE_VALUE_NOT_ALLOWED.message(value));
+            throw new TypeDBClientError(POSITIVE_VALUE_REQUIRED.message(value));
         }
-        this._prefetchSize = value;
+        ffi.options_set_prefetch_size(this._nativeObject, value);
     }
 
     get sessionIdleTimeoutMillis() {
-        return this._sessionIdleTimeoutMillis;
+        if (ffi.options_has_session_idle_timeout_millis(this._nativeObject)) return ffi.options_get_session_idle_timeout_millis(this._nativeObject);
+        return null;
     }
 
-    set sessionIdleTimeoutMillis(millis: number) {
-        if (millis < 1) {
-            throw new TypeDBClientError(NEGATIVE_VALUE_NOT_ALLOWED.message(millis));
+    set sessionIdleTimeoutMillis(value: number) {
+        if (value < 1) {
+            throw new TypeDBClientError(POSITIVE_VALUE_REQUIRED.message(value));
         }
-        this._sessionIdleTimeoutMillis = millis;
-    }
-
-    get transactionTimeoutMillis() {
-        return this._transactionTimeoutMillis;
-    }
-
-    set transactionTimeoutMillis(millis: number) {
-        if (millis < 1) {
-            throw new TypeDBClientError(NEGATIVE_VALUE_NOT_ALLOWED.message(millis));
-        }
-        this._transactionTimeoutMillis = millis;
+        ffi.options_set_session_idle_timeout_millis(this._nativeObject, value);
     }
 
     get schemaLockAcquireTimeoutMillis() {
-        return this._schemaLockAcquireTimeoutMillis;
+        if (ffi.options_has_transaction_timeout_millis(this._nativeObject)) return ffi.options_get_transaction_timeout_millis(this._nativeObject);
+        return null;
+    }
+
+    set transactionTimeoutMillis(value: number) {
+        if (value < 1) {
+            throw new TypeDBClientError(POSITIVE_VALUE_REQUIRED.message(value));
+        }
+        ffi.options_set_transaction_timeout_millis(this._nativeObject, value);
+    }
+
+    get transactionTimeoutMillis() {
+        if (ffi.options_has_schema_lock_acquire_timeout_millis(this._nativeObject)) return ffi.options_get_schema_lock_acquire_timeout_millis(this._nativeObject);
+        return null;
     }
 
     set schemaLockAcquireTimeoutMillis(value: number) {
         if (value < 1) {
-            throw new TypeDBClientError(NEGATIVE_VALUE_NOT_ALLOWED.message(value));
+            throw new TypeDBClientError(POSITIVE_VALUE_REQUIRED.message(value));
         }
-        this._schemaLockAcquireTimeoutMillis = value;
-    }
-}
-
-export class TypeDBClusterOptions extends TypeDBOptions implements Opts.Cluster {
-
-    private _readAnyReplica: boolean;
-
-    constructor(obj: { [K in keyof Opts.Cluster]: Opts.Cluster[K] } = {}) {
-        super(obj);
-    }
-
-    isCluster(): boolean {
-        return true;
+        ffi.options_set_schema_lock_acquire_timeout_millis(this._nativeObject, value);
     }
 
     get readAnyReplica() {
-        return this._readAnyReplica;
+        if (ffi.options_has_read_any_replica(this._nativeObject)) return ffi.options_get_read_any_replica(this._nativeObject);
+        return null;
     }
 
     set readAnyReplica(value: boolean) {
-        this._readAnyReplica = value;
-    }
-}
-
-export namespace TypeDBOptions {
-
-    export function core(options: { [K in keyof Opts.Core]: Opts.Core[K] } = {}) {
-        return new TypeDBOptions(options);
-    }
-
-    export function cluster(options: { [K in keyof Opts.Cluster]: Opts.Cluster[K] } = {}) {
-        return new TypeDBClusterOptions(options);
+        ffi.options_set_read_any_replica(this._nativeObject, value);
     }
 }

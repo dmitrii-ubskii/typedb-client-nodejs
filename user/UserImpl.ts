@@ -19,32 +19,6 @@
  * under the License.
  */
 
-import { TypeDBClientImpl } from "../TypeDBClientImpl";
-import {TypeDBStub} from "../../common/rpc/TypeDBStub";
-import {CoreStub} from "./CoreStub";
-import {TypeDBDatabaseManagerImpl} from "../TypeDBDatabaseManagerImpl";
+import {User} from "../api/user/User";
 
-export class CoreClient extends TypeDBClientImpl {
-
-    private readonly _stub: CoreStub;
-    private readonly _databases: TypeDBDatabaseManagerImpl;
-
-    constructor(address: string) {
-        super();
-        this._stub = new CoreStub(address);
-        this._databases = new TypeDBDatabaseManagerImpl(this._stub);
-    }
-
-    get databases(): TypeDBDatabaseManagerImpl {
-        return this._databases;
-    }
-
-    stub(): TypeDBStub {
-        return this._stub;
-    }
-
-    async close(): Promise<void> {
-        await super.close();
-        this._stub.close();
-    }
-}
+export class UserImpl implements User {}

@@ -20,7 +20,6 @@
  */
 
 
-import { RequestBuilder } from "../../../common/rpc/RequestBuilder";
 import { Stream } from "../../../common/util/Stream";
 import { TypeDBTransaction } from "../../connection/TypeDBTransaction";
 import { Attribute } from "../thing/Attribute";
@@ -117,9 +116,5 @@ export namespace ThingType {
         unsetOwns(attributeType: AttributeType): Promise<void>;
 
         getSyntax(): Promise<string>;
-    }
-
-    export function proto(thingType: ThingType) {
-        return RequestBuilder.Type.ThingType.protoThingType(thingType.label, Type.encoding(thingType));
     }
 }

@@ -78,7 +78,7 @@ export namespace ErrorMessage {
         export const TRANSACTION_CLOSED = new Client(3, () => `The transaction has been closed and no further operation is allowed.`);
         export const TRANSACTION_CLOSED_WITH_ERRORS = new Client(4, (args: Stringable[]) => `The transaction has been closed with error(s): \n${args[0]}.`)
         export const UNABLE_TO_CONNECT = new Client(5, () => `Unable to connect to TypeDB server.`);
-        export const NEGATIVE_VALUE_NOT_ALLOWED = new Client(6, (args: Stringable[]) => `Value cannot be less than 1, was: '${args[0]}'.`);
+        export const POSITIVE_VALUE_REQUIRED = new Client(6, (args: Stringable[]) => `Value cannot be less than 1, was: '${args[0]}'.`);
         export const MISSING_DB_NAME = new Client(7, () => `Database name cannot be null.`);
         export const DB_DOES_NOT_EXIST = new Client(8, (args: Stringable[]) => `The database '${args[0]}' does not exist.`);
         export const UNKNOWN_STREAM_STATE = new Client(9, (args: Stringable[]) => `RPC transaction stream response '${args[0]}' is unknown.`);

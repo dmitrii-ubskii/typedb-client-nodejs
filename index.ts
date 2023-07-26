@@ -44,9 +44,6 @@ export * from "./api/concept/ConceptManager";
 export * from "./api/connection/database/Database";
 export * from "./api/connection/database/DatabaseManager";
 
-export * from "./api/connection/user/User";
-export * from "./api/connection/user/UserManager";
-
 export * from "./api/connection/TypeDBClient";
 export * from "./api/connection/TypeDBCredential";
 export * from "./api/connection/TypeDBOptions";
@@ -58,6 +55,9 @@ export * from "./api/logic/LogicManager";
 export * from "./api/logic/Rule";
 
 export * from "./api/query/QueryManager";
+
+export * from "./api/user/User";
+export * from "./api/user/UserManager";
 
 export * from "./common/errors/ErrorMessage";
 export * from "./common/errors/TypeDBClientError";

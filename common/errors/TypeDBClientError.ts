@@ -19,49 +19,24 @@
  * under the License.
  */
 
-import { ServiceError } from "@grpc/grpc-js";
-import { Status } from "@grpc/grpc-js/build/src/constants";
 import {ErrorMessage} from "./ErrorMessage";
-import CLUSTER_REPLICA_NOT_PRIMARY = ErrorMessage.Client.CLUSTER_REPLICA_NOT_PRIMARY;
-import CLUSTER_TOKEN_CREDENTIAL_INVALID = ErrorMessage.Client.CLUSTER_TOKEN_CREDENTIAL_INVALID;
-import UNABLE_TO_CONNECT = ErrorMessage.Client.UNABLE_TO_CONNECT;
 
-function isReplicaNotPrimaryError(e: ServiceError): boolean {
-    return e.message.includes("[RPL01]");
-}
-
-function isTokenCredentialInvalidError(e: ServiceError): boolean {
-    return e.message.includes("[CLS08]");
-}
-
-function isServiceError(e: Error | ServiceError): e is ServiceError {
-    return "code" in e;
-}
+const ffi = require("../typedb_client_nodejs");
 
 export class TypeDBClientError extends Error {
     private readonly _messageTemplate: ErrorMessage;
 
-    constructor(error: string | Error | ServiceError | ErrorMessage) {
+    constructor(error: string | Error | ErrorMessage | object) {
         if (typeof error === "string") super(error);
         else if (error instanceof ErrorMessage) {
             super(error.toString());
             this._messageTemplate = error;
+        } else if (error instanceof Error) {
+            super(error.toString());
+        } else {
+            // FFI error
+            super((ffi.error_code(error) + " " + ffi.error_message(error)).trim());
         }
-        // TODO: clean this up once we have our own error protocol
-        else if (isServiceError(error)) {
-            if ([Status.UNAVAILABLE, Status.UNKNOWN, Status.CANCELLED].includes(error.code) || error.message.includes("Received RST_STREAM")) {
-                super(UNABLE_TO_CONNECT.message());
-                this._messageTemplate = UNABLE_TO_CONNECT;
-            } else if (isReplicaNotPrimaryError(error)) {
-                super(CLUSTER_REPLICA_NOT_PRIMARY.message());
-                this._messageTemplate = CLUSTER_REPLICA_NOT_PRIMARY;
-            } else if (isTokenCredentialInvalidError(error)) {
-                super(CLUSTER_TOKEN_CREDENTIAL_INVALID.message());
-                this._messageTemplate = CLUSTER_TOKEN_CREDENTIAL_INVALID;
-            } else if (error.code === Status.INTERNAL) super(error.details)
-            else super(error.toString());
-        }
-        else super(error.toString());
 
         this.name = "TypeDBClientError"; // Required to correctly report error type in default throw
     }

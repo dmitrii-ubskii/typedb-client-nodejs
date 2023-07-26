@@ -19,70 +19,63 @@
  * under the License.
  */
 
-import { TypeDBClient } from "../api/connection/TypeDBClient";
-import { TypeDBOptions } from "../api/connection/TypeDBOptions";
-import { SessionType } from "../api/connection/TypeDBSession";
-import { ErrorMessage } from "../common/errors/ErrorMessage";
-import { TypeDBClientError } from "../common/errors/TypeDBClientError";
-import { TypeDBStub } from "../common/rpc/TypeDBStub";
-import { RequestTransmitter } from "../stream/RequestTransmitter";
-import { TypeDBDatabaseManagerImpl } from "./TypeDBDatabaseManagerImpl";
-import { TypeDBSessionImpl } from "./TypeDBSessionImpl";
-import SESSION_ID_EXISTS = ErrorMessage.Client.SESSION_ID_EXISTS;
-import ILLEGAL_CAST = ErrorMessage.Internal.ILLEGAL_CAST;
+import {DatabaseManager} from "../api/connection/database/DatabaseManager";
+import {TypeDBCredential} from "../api/connection/TypeDBCredential";
+import {TypeDBClient} from "../api/connection/TypeDBClient";
+import {TypeDBDatabaseManagerImpl} from "./TypeDBDatabaseManagerImpl";
+// import {UserManager} from "../api/user/UserManager";
+import {SessionType, TypeDBSession} from "../api/connection/TypeDBSession";
+import {TypeDBOptions} from "../api/connection/TypeDBOptions";
+// import {UserManagerImpl} from "../user/UserManagerImpl";
+import {checkFFIError} from "../common/util/FFIError";
 
-export abstract class TypeDBClientImpl implements TypeDBClient {
+const ffi = require("../typedb_client_nodejs");
 
-    private readonly _requestTransmitter: RequestTransmitter;
-    private readonly _sessions: { [id: string]: TypeDBSessionImpl };
-    private _isOpen: boolean;
+export class TypeDBClientImpl implements TypeDBClient {
+    private readonly _nativeObject: object;
 
-    protected constructor() {
-        this._requestTransmitter = new RequestTransmitter();
-        this._sessions = {};
-        this._isOpen = true;
+    private readonly _databases: TypeDBDatabaseManagerImpl;
+
+    // private readonly _users: UserManagerImpl;
+
+    static openPlaintext(address: string): TypeDBClient {
+        const nativeObject = ffi.connection_open_plaintext(address);
+        checkFFIError();
+        return new TypeDBClientImpl(nativeObject);
+    }
+
+    static openEncrypted(addresses: string[], credential: TypeDBCredential): TypeDBClient {
+        const nativeObject = ffi.connection_open_encrypted(addresses, credential.nativeObject);
+        checkFFIError();
+        return new TypeDBClientImpl(nativeObject);
+    }
+
+    private constructor(native: object) {
+        this._nativeObject = native;
+        this._databases = new TypeDBDatabaseManagerImpl(this._nativeObject);
+        // this._users = new UserManagerImpl(this._nativeObject);
     }
 
     isOpen(): boolean {
-        return this._isOpen;
+        return ffi.isOpen(this._nativeObject);
     }
 
-    async session(database: string, type: SessionType, options?: TypeDBOptions): Promise<TypeDBSessionImpl> {
-        if (!options) options = TypeDBOptions.core();
-        const session = new TypeDBSessionImpl(database, type, options, this);
-        await session.open();
-        if (this._sessions[session.id]) throw new TypeDBClientError(SESSION_ID_EXISTS.message(session.id));
-        this._sessions[session.id] = session;
-        return session;
+    get databases(): DatabaseManager {
+        return this._databases;
     }
 
-    abstract get databases(): TypeDBDatabaseManagerImpl;
+    // get users(): UserManager {
+    //     return this._users;
+    // }
 
-    abstract stub(): TypeDBStub;
-
-    transmitter(): RequestTransmitter {
-        return this._requestTransmitter;
+    session(database: string, type: SessionType, options?: TypeDBOptions): TypeDBSession {
+        if (!options) options = new TypeDBOptions();
+        throw type; // FIXME
+        // return new TypeDBSessionImpl(this.databases().get(database), type, options);
     }
 
-    isCluster(): boolean {
-        return false;
-    }
-
-    asCluster(): TypeDBClient.Cluster {
-        throw new TypeDBClientError(ILLEGAL_CAST.message(this.constructor.toString(), "ClusterClient"));
-    }
-
-    async close(): Promise<void> {
-        if (this._isOpen) {
-            this._isOpen = false;
-            for (const session of Object.values(Object.values(this._sessions))) {
-                await session.close();
-            }
-            this._requestTransmitter.close();
-        }
-    }
-
-    closeSession(session: TypeDBSessionImpl): void {
-        delete this._sessions[session.id];
+    close(): void {
+        ffi.connection_force_close(this._nativeObject);
+        checkFFIError();
     }
 }

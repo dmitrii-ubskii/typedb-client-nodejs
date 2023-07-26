@@ -89,12 +89,12 @@ When("connection delete all databases", async () => {
 });
 
 Then("connection has database: {word}", async (name: string) => {
-    const databases = await client.databases.all();
+    const databases = client.databases.all();
     assert.ok(databases.some(x => x.name === name));
 });
 
 Then("connection has database(s):", async (names: DataTable) => {
-    const databases = await client.databases.all();
+    const databases = client.databases.all();
     names.raw().forEach(name => {
         assert.ok(databases.some(x => x.name === name[0]));
     });
@@ -105,13 +105,13 @@ Then("connection does not have database: {word}", async (name: string) => {
 });
 
 Then("connection does not have database(s):", async (names: DataTable) => {
-    const databases = await client.databases.all();
+    const databases = client.databases.all();
     names.raw().forEach(name => {
         assert.ok(!databases.some(x => x.name === name[0]));
     });
 });
 
 Given("connection does not have any database", async () => {
-    const databases = await client.databases.all();
+    const databases = client.databases.all();
     assert.ok(databases.length === 0)
 });

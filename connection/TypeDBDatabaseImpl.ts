@@ -22,35 +22,107 @@
 import {Database} from "../api/connection/database/Database";
 import {ErrorMessage} from "../common/errors/ErrorMessage";
 import {TypeDBClientError} from "../common/errors/TypeDBClientError";
-import {RequestBuilder} from "../common/rpc/RequestBuilder";
-import {TypeDBStub} from "../common/rpc/TypeDBStub";
+import {checkFFIError} from "../common/util/FFIError";
+import SESSION_CLOSED = ErrorMessage.Client.SESSION_CLOSED;
+import Replica = Database.Replica;
+
+const ffi = require("../typedb_client_nodejs");
 
 export class TypeDBDatabaseImpl implements Database {
+    private _nativeObject: object;
 
-    private readonly _name: string;
-    private readonly _stub: TypeDBStub;
-
-    constructor(name: string, typeDBStub: TypeDBStub) {
-        this._name = name;
-        this._stub = typeDBStub;
+    constructor(native: object) {
+        this._nativeObject = native;
     }
 
     get name(): string {
-        return this._name;
+        if (this._nativeObject == null) throw new TypeDBClientError(SESSION_CLOSED);  // FIXME DATABASE_DELETED
+        return ffi.database_get_name(this._nativeObject);
     }
 
-    delete(): Promise<void> {
-        if (!this._name) throw new TypeDBClientError(ErrorMessage.Client.MISSING_DB_NAME.message());
-        const req = RequestBuilder.Core.Database.deleteReq(this._name);
-        return this._stub.databaseDelete(req);
+    schema(): string {
+        if (this._nativeObject == null) throw new TypeDBClientError(SESSION_CLOSED);  // FIXME DATABASE_DELETED
+        const schema = ffi.database_schema(this._nativeObject);
+        checkFFIError();
+        return schema;
     }
 
-    schema(): Promise<string> {
-        const req = RequestBuilder.Core.Database.schemaReq(this.name);
-        return this._stub.databaseSchema(req);
+    typeSchema(): string {
+        if (this._nativeObject == null) throw new TypeDBClientError(SESSION_CLOSED);  // FIXME DATABASE_DELETED
+        const schema = ffi.database_type_schema(this._nativeObject);
+        checkFFIError();
+        return schema;
+    }
+
+    ruleSchema(): string {
+        if (this._nativeObject == null) throw new TypeDBClientError(SESSION_CLOSED);  // FIXME DATABASE_DELETED
+        const schema = ffi.database_rule_schema(this._nativeObject);
+        checkFFIError();
+        return schema;
+    }
+
+    delete(): void {
+        if (this._nativeObject == null) throw new TypeDBClientError(SESSION_CLOSED);  // FIXME DATABASE_DELETED
+        ffi.database_delete(this._nativeObject);
+        this._nativeObject = null;
+        checkFFIError();
+    }
+
+    get replicas(): Replica[] {
+        if (this._nativeObject == null) throw new TypeDBClientError(SESSION_CLOSED);  // FIXME DATABASE_DELETED
+        const iter = ffi.database_get_replicas_info(this._nativeObject);
+        checkFFIError();
+        let replicas: Replica[] = [];
+        do {
+            let replica = ffi.replica_iterator_next(iter)
+            checkFFIError();
+            if (replica == null) break;
+            replicas.push(new ReplicaImpl(replica));
+        } while (true);
+        return replicas;
+    }
+
+    get primaryReplica(): Replica | null {
+        if (this._nativeObject == null) throw new TypeDBClientError(SESSION_CLOSED);  // FIXME DATABASE_DELETED
+        const res = ffi.database_get_primary_replica_info(this._nativeObject);
+        checkFFIError();
+        if (res != null) return new ReplicaImpl(res);
+        else return null;
+    }
+
+    get preferredReplica(): Replica | null {
+        if (this._nativeObject == null) throw new TypeDBClientError(SESSION_CLOSED);  // FIXME DATABASE_DELETED
+        const res = ffi.database_get_preferred_replica_info(this._nativeObject);
+        checkFFIError();
+        if (res != null) return new ReplicaImpl(res);
+        else return null;
     }
 
     toString(): string {
-        return "Database[" + this._name + "]";
+        return "Database[" + this.name + "]";
+    }
+}
+
+export class ReplicaImpl implements Replica {
+    private readonly _nativeObject: object;
+
+    constructor(native: object) {
+        this._nativeObject = native;
+    }
+
+    get address(): string {
+        return ffi.replica_info_get_address(this._nativeObject);
+    }
+
+    get isPrimary(): boolean {
+        return ffi.replica_info_is_primary(this._nativeObject);
+    }
+
+    get isPreferred(): boolean {
+        return ffi.replica_info_is_preferred(this._nativeObject);
+    }
+
+    get term(): number {
+        return ffi.replica_info_get_term(this._nativeObject);
     }
 }

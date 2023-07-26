@@ -19,7 +19,6 @@
  * under the License.
  */
 
-import { RequestBuilder } from "../../../common/rpc/RequestBuilder";
 import { Stream } from "../../../common/util/Stream";
 import { TypeDBTransaction } from "../../connection/TypeDBTransaction";
 import { Concept } from "../Concept";
@@ -95,9 +94,5 @@ export namespace Thing {
         asAttribute(): Attribute.Remote;
 
         asRelation(): Relation.Remote;
-    }
-
-    export function proto(thing: Thing) {
-        return RequestBuilder.Thing.protoThing(thing.iid);
     }
 }

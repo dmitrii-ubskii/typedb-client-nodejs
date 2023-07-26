@@ -20,35 +20,31 @@
  */
 
 export interface Database {
-
     readonly name: string;
 
-    delete(): Promise<void>;
+    schema(): string;
 
-    schema(): Promise<string>;
+    typeSchema(): string;
+
+    ruleSchema(): string;
+
+    delete(): void;
+
+    readonly replicas: Database.Replica[];
+
+    readonly primaryReplica: Database.Replica | null;
+
+    readonly preferredReplica: Database.Replica | null;
 }
 
 export namespace Database {
+    export interface Replica {
+        readonly address: string;
 
-    export interface Cluster extends Database {
+        readonly isPrimary: boolean;
 
-        readonly replicas: Replica[];
-
-        readonly primaryReplica: Replica;
-
-        readonly preferredReplica: Replica;
-    }
-
-    export interface Replica extends Database {
-
-        readonly database: Cluster;
+        readonly isPreferred: boolean;
 
         readonly term: number;
-
-        readonly primary: boolean;
-
-        readonly preferred: boolean;
-
-        readonly address: string;
     }
 }

@@ -19,10 +19,10 @@
  * under the License.
  */
 
-import { Session } from "typedb-protocol/common/session_pb";
-import { Database } from "./database/Database";
-import { TypeDBOptions } from "./TypeDBOptions";
-import { TransactionType, TypeDBTransaction } from "./TypeDBTransaction";
+import {Session} from "typedb-protocol/common/session_pb";
+import {Database} from "./database/Database";
+import {TypeDBOptions} from "./TypeDBOptions";
+import {TransactionType, TypeDBTransaction} from "./TypeDBTransaction";
 
 export interface TypeDBSession {
 

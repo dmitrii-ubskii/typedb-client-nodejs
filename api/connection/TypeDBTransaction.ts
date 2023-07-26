@@ -19,15 +19,14 @@
  * under the License.
  */
 
-import { Transaction } from "typedb-protocol/common/transaction_pb";
-import { Stream } from "../../common/util/Stream";
-import { ConceptManager } from "../concept/ConceptManager";
-import { LogicManager } from "../logic/LogicManager";
-import { QueryManager } from "../query/QueryManager";
-import { TypeDBOptions } from "./TypeDBOptions";
+import {ConceptManager} from "../concept/ConceptManager";
+import {LogicManager} from "../logic/LogicManager";
+import {QueryManager} from "../query/QueryManager";
+import {TypeDBOptions} from "./TypeDBOptions";
+
+const ffi = require("../typedb_client_nodejs");
 
 export interface TypeDBTransaction {
-
     isOpen(): boolean;
 
     readonly type: TransactionType;
@@ -40,55 +39,28 @@ export interface TypeDBTransaction {
 
     readonly query: QueryManager;
 
-    commit(): Promise<void>;
+    commit(): void;
 
-    rollback(): Promise<void>;
+    rollback(): void;
 
-    close(): Promise<void>;
+    close(): void;
 }
 
-export interface TransactionType {
+export class TransactionType {
+    static READ = new TransactionType(ffi.Read);
+    static WRITE = new TransactionType(ffi.Write);
 
-    proto(): Transaction.Type;
+    private readonly _type: number;
 
-    isRead(): boolean;
-
-    isWrite(): boolean;
-}
-
-export namespace TransactionType {
-
-    class TransactionTypeImpl implements TransactionType {
-
-        private readonly _type: Transaction.Type;
-
-        constructor(type: Transaction.Type) {
-            this._type = type;
-        }
-
-        proto(): Transaction.Type {
-            return this._type;
-        }
-
-        isRead(): boolean {
-            return this == READ;
-        }
-
-        isWrite(): boolean {
-            return this == WRITE;
-        }
+    constructor(type: number) {
+        this._type = type;
     }
 
-    export const READ = new TransactionTypeImpl(Transaction.Type.READ);
-    export const WRITE = new TransactionTypeImpl(Transaction.Type.WRITE);
-}
+    isRead(): boolean {
+        return this == TransactionType.READ;
+    }
 
-export namespace TypeDBTransaction {
-
-    export interface Extended extends TypeDBTransaction {
-
-        rpcExecute(request: Transaction.Req, batch?: boolean): Promise<Transaction.Res>;
-
-        rpcStream(request: Transaction.Req): Stream<Transaction.ResPart>;
+    isWrite(): boolean {
+        return this == TransactionType.WRITE;
     }
 }

@@ -33,8 +33,6 @@ import { Thing } from "./Thing";
 
 export interface Attribute extends Thing {
 
-    asRemote(transaction: TypeDBTransaction): Attribute.Remote;
-
     readonly type: AttributeType;
 
     readonly value: boolean | string | number | Date;
@@ -63,8 +61,6 @@ export interface Attribute extends Thing {
 export namespace Attribute {
 
     export interface Remote extends Attribute, Thing.Remote {
-
-        asRemote(transaction: TypeDBTransaction): Attribute.Remote;
 
         readonly type: AttributeType;
 

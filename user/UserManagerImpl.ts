@@ -19,14 +19,8 @@
  * under the License.
  */
 
-const ffi = require("../typedb_client_nodejs");
+import {UserManager} from "../api/user/UserManager";
 
-export class TypeDBCredential {
-    readonly nativeObject: object;
+export class UserManagerImpl implements UserManager {
 
-    // TODO static factory methods
-
-    constructor(username: string, password: string, tlsRootCAPath: string | null, tlsEnabled: boolean = true) {
-        this.nativeObject = ffi.credential_new(username, password, tlsRootCAPath, tlsEnabled);
-    }
 }

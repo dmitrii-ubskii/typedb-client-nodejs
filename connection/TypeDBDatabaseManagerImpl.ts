@@ -23,42 +23,48 @@ import {Database} from "../api/connection/database/Database";
 import {DatabaseManager} from "../api/connection/database/DatabaseManager";
 import {ErrorMessage} from "../common/errors/ErrorMessage";
 import {TypeDBClientError} from "../common/errors/TypeDBClientError";
-import {RequestBuilder} from "../common/rpc/RequestBuilder";
-import {TypeDBStub} from "../common/rpc/TypeDBStub";
 import {TypeDBDatabaseImpl} from "./TypeDBDatabaseImpl";
+import {checkFFIError} from "../common/util/FFIError";
+
+const ffi = require("../typedb_client_nodejs");
 
 export class TypeDBDatabaseManagerImpl implements DatabaseManager {
+    private readonly _nativeObject: object;
 
-    private readonly _stub: TypeDBStub;
-
-    constructor(client: TypeDBStub) {
-        this._stub = client;
+    constructor(nativeConnection: object) {
+        this._nativeObject = ffi.database_manager_new(nativeConnection);
     }
 
-    public async get(name: string): Promise<Database> {
-        if (await this.contains(name)) {
-            return new TypeDBDatabaseImpl(name, this._stub);
-        } else throw new TypeDBClientError(ErrorMessage.Client.DB_DOES_NOT_EXIST.message(name));
-    }
-
-    public create(name: string): Promise<void> {
+    public get(name: string): Database {
         if (!name) throw new TypeDBClientError(ErrorMessage.Client.MISSING_DB_NAME);
-        const req = RequestBuilder.Core.DatabaseManager.createReq(name);
-        return this._stub.databasesCreate(req);
+        const database = ffi.databases_get(this._nativeObject, name);
+        checkFFIError();
+        return new TypeDBDatabaseImpl(database);
     }
 
-    public contains(name: string): Promise<boolean> {
+    public contains(name: string): boolean {
         if (!name) throw new TypeDBClientError(ErrorMessage.Client.MISSING_DB_NAME);
-        const req = RequestBuilder.Core.DatabaseManager.containsReq(name);
-        return this._stub.databasesContains(req);
+        const contains = ffi.databases_contains(this._nativeObject, name);
+        checkFFIError();
+        return contains;
     }
 
-    public all(): Promise<Database[]> {
-        const req = RequestBuilder.Core.DatabaseManager.allReq();
-        return this._stub.databasesAll(req);
+    public create(name: string): void {
+        if (!name) throw new TypeDBClientError(ErrorMessage.Client.MISSING_DB_NAME);
+        ffi.databases_create(this._nativeObject, name);
+        checkFFIError();
     }
 
-    stub() {
-        return this._stub;
+    public all(): Database[] {
+        const iter = ffi.databases_all(this._nativeObject);
+        checkFFIError();
+        let databases: Database[] = [];
+        do {
+            const database = ffi.database_iterator_next(iter);
+            checkFFIError();
+            if (database == null) break;
+            databases.push(new TypeDBDatabaseImpl(database));
+        } while (true);
+        return databases;
     }
 }

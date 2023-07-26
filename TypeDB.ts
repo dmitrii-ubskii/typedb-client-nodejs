@@ -21,19 +21,18 @@
 
 import { TypeDBClient as TypeDBClient } from "./api/connection/TypeDBClient";
 import { TypeDBCredential } from "./api/connection/TypeDBCredential";
-import { ClusterClient } from "./connection/cluster/ClusterClient";
-import { CoreClient } from "./connection/core/CoreClient";
+import { TypeDBClientImpl } from "./connection/TypeDBClientImpl";
 
 export namespace TypeDB {
 
     export const DEFAULT_ADDRESS = "127.0.0.1:1729";
 
     export function coreClient(address: string = DEFAULT_ADDRESS): TypeDBClient {
-        return new CoreClient(address);
+        return TypeDBClientImpl.openPlaintext(address);
     }
 
-    export function clusterClient(addresses: string | string[], credential: TypeDBCredential): Promise<TypeDBClient.Cluster> {
+    export function clusterClient(addresses: string | string[], credential: TypeDBCredential): TypeDBClient {
         if (typeof addresses === 'string') addresses = [addresses];
-        return new ClusterClient(addresses, credential).open();
+        return TypeDBClientImpl.openEncrypted(addresses, credential);
     }
 }

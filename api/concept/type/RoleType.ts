@@ -19,7 +19,6 @@
  * under the License.
  */
 
-import { RequestBuilder } from "../../../common/rpc/RequestBuilder";
 import { Stream } from "../../../common/util/Stream";
 import { TypeDBTransaction } from "../../connection/TypeDBTransaction";
 import { Attribute } from "../thing/Attribute";
@@ -84,9 +83,5 @@ export namespace RoleType {
         getPlayerInstances(): Stream<Thing>;
 
         getPlayerInstancesExplicit(): Stream<Thing>;
-    }
-
-    export function proto(roleType: RoleType) {
-        return RequestBuilder.Type.RoleType.protoRoleType(roleType.label, Type.encoding(roleType));
     }
 }

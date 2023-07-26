@@ -20,32 +20,31 @@
 #
 
 exports_files([
-    "node_modules",
+    "pnpm-lock.yaml",
     "package.json",
     "package-lock.json",
     "RELEASE_TEMPLATE.md",
     "VERSION",
 ])
 
-load("@build_bazel_rules_nodejs//:index.bzl", "pkg_npm", "nodejs_binary")
-load("@vaticle_bazel_distribution//npm:rules.bzl", "assemble_npm", "deploy_npm")
-load("@vaticle_bazel_distribution//github:rules.bzl", "deploy_github")
-load("@vaticle_bazel_distribution//artifact:rules.bzl", "artifact_extractor")
-load("@vaticle_dependencies//tool/checkstyle:rules.bzl", "checkstyle_test")
-load("@vaticle_dependencies//tool/release/deps:rules.bzl", "release_validate_nodejs_deps")
-load("@vaticle_dependencies//distribution:deployment.bzl", "deployment")
-load("//:deployment.bzl", github_deployment = "deployment")
+#load("@rules_nodejs//:index.bzl", "pkg_npm", "nodejs_binary")
+#load("@vaticle_bazel_distribution//npm:rules.bzl", "assemble_npm", "deploy_npm")
+#load("@vaticle_bazel_distribution//github:rules.bzl", "deploy_github")
+#load("@vaticle_bazel_distribution//artifact:rules.bzl", "artifact_extractor")
+#load("@vaticle_dependencies//tool/checkstyle:rules.bzl", "checkstyle_test")
+#load("@vaticle_dependencies//tool/release/deps:rules.bzl", "release_validate_nodejs_deps")
+#load("@vaticle_dependencies//distribution:deployment.bzl", "deployment")
+#load("//:deployment.bzl", github_deployment = "deployment")
 
-load("@npm//@bazel/typescript:index.bzl", "ts_project")
+load("@aspect_rules_ts//ts:defs.bzl", "ts_project")
+load("@npm//:defs.bzl", "npm_link_all_packages")
+npm_link_all_packages(name = "node_modules")
 
 genrule(
     name = "client-nodejs-targz",
     outs = ["client-nodejs.tar.gz"],
-    cmd = "npx tsc; tar -cf $(@D)/client-nodejs.tar.gz dist;",
-    tools = [
-        "//:client-nodejs-ts",
-        "//:package.json",
-    ],
+    cmd = "tar -cf $(@D)/client-nodejs.tar.gz $(SRCS)",
+    srcs = [ "//:client-nodejs" ],
     visibility = ["//visibility:public"],
 )
 
@@ -55,12 +54,13 @@ filegroup(
         "*.ts",
         "api/**/*.ts",
         "common/**/*.ts",
-        "connection/**/*.ts",
-        "concept/**/*.ts",
-        "logic/**/*.ts",
-        "query/**/*.ts",
-        "stream/**/*.ts",
-        "tsconfig.json",
+        "connection/TypeDBClientImpl.ts",
+        "connection/TypeDBDatabase*.ts",
+#        "concept/**/*.ts",
+#        "logic/**/*.ts",
+#        "query/**/*.ts",
+#        "stream/**/*.ts",
+#        "tsconfig.json",
         "node_modules/**"
     ]),
 )
@@ -100,135 +100,144 @@ filegroup(
     visibility = ["//test/behaviour:__pkg__"],
 )
 
+genrule(
+    name = "nodejs-ffi",
+    outs = ["typedb_client_nodejs.node"],
+    srcs = ["@vaticle_typedb_driver_java//rust:typedb_client_nodejs"],
+    cmd = "cp $< $@",
+    visibility = ["//visibility:public"]
+)
+
 ts_project(
     name = "client-nodejs",
-    srcs = glob([
+    srcs = [":nodejs-ffi"] + glob([
         "*.ts",
         "api/**/*.ts",
         "common/**/*.ts",
-        "connection/**/*.ts",
-        "concept/**/*.ts",
-        "logic/**/*.ts",
-        "query/**/*.ts",
-        "stream/**/*.ts",
+        "connection/TypeDBClientImpl.ts",
+        "connection/TypeDBDatabase*.ts",
+#        "concept/**/*.ts",
+#        "logic/**/*.ts",
+#        "query/**/*.ts",
+#        "stream/**/*.ts",
     ]),
     tsconfig = "tsconfig.json",
     declaration = True,
     deps = [
-        "@npm//@grpc/grpc-js",
-        "@npm//@types/node",
-        "@npm//@types/uuid",
-        "@npm//typedb-protocol",
-        "@npm//typescript",
-        "@npm//uuid",
-    ],
-)
-
-pkg_npm(
-    name = "client-nodejs-npm-package",
-    package_name = "typedb-client",
-    srcs = glob([
-       "package.json",
-       "README.md",
-    ]),
-    deps = [
-        "@npm//typedb-protocol",
-        "@npm//@grpc/grpc-js",
-        "@npm//google-protobuf",
-        ":client-nodejs",
+        ":node_modules/@types/node",
+        ":node_modules/@types/uuid",
+        ":node_modules/typedb-protocol",
+        ":node_modules/typescript",
+        ":node_modules/uuid",
     ],
     visibility = ["//visibility:public"],
-    vendor_external = [],
+    out_dir = "dist",
 )
 
-assemble_npm(
-    name = "assemble-npm",
-    target = ":client-nodejs-npm-package",
-)
+#pkg_npm(
+#    name = "client-nodejs-npm-package",
+#    package_name = "typedb-client",
+#    srcs = glob([
+#       "package.json",
+#       "README.md",
+#    ]),
+#    deps = [
+#        "@npm//typedb-protocol",
+#        "@npm//@grpc/grpc-js",
+#        "@npm//google-protobuf",
+#        ":client-nodejs",
+#    ],
+#    visibility = ["//visibility:public"],
+#    vendor_external = [],
+#)
 
-deploy_npm(
-    name = "deploy-npm",
-    target = ":assemble-npm",
-    snapshot = deployment["npm.snapshot"],
-    release = deployment["npm.release"],
-)
+#assemble_npm(
+#    name = "assemble-npm",
+#    target = ":client-nodejs-npm-package",
+#)
 
-deploy_github(
-    name = "deploy-github",
-    release_description = "//:RELEASE_TEMPLATE.md",
-    title = "TypeDB Client Node.js",
-    title_append_version = True,
-    organisation = github_deployment["github.organisation"],
-    repository = github_deployment["github.repository"],
-    draft = False
-)
+#deploy_npm(
+#    name = "deploy-npm",
+#    target = ":assemble-npm",
+#    snapshot = deployment["npm.snapshot"],
+#    release = deployment["npm.release"],
+#)
 
-NODEJS_TEST_DEPENDENCIES = [
-    ":client-nodejs",
-    "@npm//fs-extra",
-    "@npm//google-protobuf",
-    "@npm//grpc",
-    "@npm//tmp",
-    "@npm//properties-reader",
-]
+#deploy_github(
+#    name = "deploy-github",
+#    release_description = "//:RELEASE_TEMPLATE.md",
+#    title = "TypeDB Client Node.js",
+#    title_append_version = True,
+#    organisation = github_deployment["github.organisation"],
+#    repository = github_deployment["github.repository"],
+#    draft = False
+#)
 
-genrule(
-    name = "typedb-artifact-path",
-    srcs = ["@vaticle_typedb_artifact_mac//file"],
-    outs = ["typedb-artifact-path.txt"],
-    cmd = "echo $(location @vaticle_typedb_artifact_mac//file) > \"$@\"",
-)
-
-artifact_extractor(
-    name = "typedb-extractor",
-    artifact = "@vaticle_typedb_artifact_linux//file",
-)
-
-release_validate_nodejs_deps(
-    name = "release-validate-nodejs-deps",
-    package_json = "//:package.json",
-    tagged_deps = ["typedb-protocol"]
-)
-
-checkstyle_test(
-    name = "checkstyle",
-    include = glob([
-        "*",
-        ".factory/*",
-        "api/**/*.ts",
-        "common/**/*.ts",
-        "concept/**/*.ts",
-        "connection/**/*.ts",
-        "logic/**/*.ts",
-        "query/**/*.ts",
-        "stream/**/*.ts",
-    ]),
-    exclude = glob([
-        "*.json",
-        "*.md",
-        ".bazelversion",
-        ".eslintrc",
-        "LICENSE",
-        "VERSION",
-        "dist/**/*.*",
-        "yarn.lock",
-    ]),
-    license_type = "apache-header",
-)
-
-checkstyle_test(
-    name = "checkstyle-license",
-    size = "small",
-    include = ["LICENSE"],
-    license_type = "apache-fulltext",
-)
-
-# CI targets that are not declared in any BUILD file, but are called externally
-filegroup(
-    name = "ci",
-    data = [
-        "@vaticle_dependencies//tool/bazelrun:rbe",
-        "@vaticle_dependencies//distribution/artifact:create-netrc",
-        "@vaticle_dependencies//tool/release/notes:create",
-    ],
-)
+#NODEJS_TEST_DEPENDENCIES = [
+#    ":client-nodejs",
+#    "@npm//fs-extra",
+#    "@npm//google-protobuf",
+#    "@npm//grpc",
+#    "@npm//tmp",
+#    "@npm//properties-reader",
+#]
+#
+#genrule(
+#    name = "typedb-artifact-path",
+#    srcs = ["@vaticle_typedb_artifact_mac//file"],
+#    outs = ["typedb-artifact-path.txt"],
+#    cmd = "echo $(location @vaticle_typedb_artifact_mac//file) > \"$@\"",
+#)
+#
+#artifact_extractor(
+#    name = "typedb-extractor",
+#    artifact = "@vaticle_typedb_artifact_linux//file",
+#)
+#
+#release_validate_nodejs_deps(
+#    name = "release-validate-nodejs-deps",
+#    package_json = "//:package.json",
+#    tagged_deps = ["typedb-protocol"]
+#)
+#
+#checkstyle_test(
+#    name = "checkstyle",
+#    include = glob([
+#        "*",
+#        ".factory/*",
+#        "api/**/*.ts",
+#        "common/**/*.ts",
+#        "concept/**/*.ts",
+#        "connection/**/*.ts",
+#        "logic/**/*.ts",
+#        "query/**/*.ts",
+#        "stream/**/*.ts",
+#    ]),
+#    exclude = glob([
+#        "*.json",
+#        "*.md",
+#        ".bazelversion",
+#        ".eslintrc",
+#        "LICENSE",
+#        "VERSION",
+#        "dist/**/*.*",
+#    ]),
+#    license_type = "apache-header",
+#)
+#
+#checkstyle_test(
+#    name = "checkstyle-license",
+#    size = "small",
+#    include = ["LICENSE"],
+#    license_type = "apache-fulltext",
+#)
+#
+## CI targets that are not declared in any BUILD file, but are called externally
+#filegroup(
+#    name = "ci",
+#    data = [
+#        "@vaticle_dependencies//tool/bazelrun:rbe",
+#        "@vaticle_dependencies//distribution/artifact:create-netrc",
+#        "@vaticle_dependencies//tool/release/notes:create",
+#    ],
+#)

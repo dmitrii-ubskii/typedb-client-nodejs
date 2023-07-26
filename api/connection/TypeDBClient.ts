@@ -22,29 +22,16 @@
 import { DatabaseManager } from "./database/DatabaseManager";
 import { TypeDBOptions } from "./TypeDBOptions";
 import { SessionType, TypeDBSession } from "./TypeDBSession";
-import { UserManager } from "./user/UserManager";
+// import { UserManager } from "../user/UserManager";
 
 export interface TypeDBClient {
-
     isOpen(): boolean;
 
     readonly databases: DatabaseManager;
 
-    session(database: string, type: SessionType, options?: TypeDBOptions): Promise<TypeDBSession>;
+    // readonly users: UserManager;
 
-    isCluster(): boolean;
+    session(database: string, type: SessionType, options?: TypeDBOptions): TypeDBSession;
 
-    asCluster(): TypeDBClient.Cluster;
-
-    close(): Promise<void>;
-}
-
-export namespace TypeDBClient {
-
-    export interface Cluster extends TypeDBClient {
-
-        readonly users: UserManager;
-
-        readonly databases: DatabaseManager.Cluster;
-    }
+    close(): void;
 }

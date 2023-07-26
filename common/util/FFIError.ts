@@ -19,14 +19,13 @@
  * under the License.
  */
 
+import {TypeDBClientError} from "../errors/TypeDBClientError";
+
 const ffi = require("../typedb_client_nodejs");
 
-export class TypeDBCredential {
-    readonly nativeObject: object;
-
-    // TODO static factory methods
-
-    constructor(username: string, password: string, tlsRootCAPath: string | null, tlsEnabled: boolean = true) {
-        this.nativeObject = ffi.credential_new(username, password, tlsRootCAPath, tlsEnabled);
+export function checkFFIError() {
+    if (ffi.check_error()) {
+        const err = ffi.get_last_error();
+        throw new TypeDBClientError(err);
     }
 }

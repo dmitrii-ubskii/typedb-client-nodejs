@@ -19,25 +19,14 @@
  * under the License.
  */
 
-import { Database } from "./Database";
+import {Database} from "./Database";
 
 export interface DatabaseManager {
+    get(name: string): Database;
 
-    contains(name: string): Promise<boolean>;
+    contains(name: string): boolean;
 
-    create(name: string): Promise<void>;
+    create(name: string): void;
 
-    get(name: string): Promise<Database>;
-
-    all(): Promise<Database[]>;
-}
-
-export namespace DatabaseManager {
-
-    export interface Cluster extends DatabaseManager {
-
-        get(name: string): Promise<Database.Cluster>;
-
-        all(): Promise<Database.Cluster[]>;
-    }
+    all(): Database[];
 }
