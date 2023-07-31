@@ -21,8 +21,8 @@
 
 import { defineParameterType } from "@cucumber/cucumber";
 import DataTable from "@cucumber/cucumber/lib/models/data_table";
-import { AttributeType } from "../../../dist/api/concept/type/AttributeType";
-import { TransactionType } from "../../../dist/api/connection/TypeDBTransaction";
+// import { AttributeType } from "../../../dist/api/concept/type/AttributeType";
+// import { TransactionType } from "../../../dist/api/connection/TypeDBTransaction";
 
 export function parseBool(value: string): boolean {
     return value === "true";
@@ -96,26 +96,26 @@ defineParameterType({
     transformer: ScopedLabel.parse,
 });
 
-defineParameterType({
-    name: "value_type",
-    regexp: /long|double|string|boolean|datetime/,
-    transformer: s => {
-        switch (s) {
-            case "long":
-                return AttributeType.ValueType.LONG
-            case "double":
-                return AttributeType.ValueType.DOUBLE
-            case "string":
-                return AttributeType.ValueType.STRING
-            case "boolean":
-                return AttributeType.ValueType.BOOLEAN
-            case "datetime":
-                return AttributeType.ValueType.DATETIME
-            default:
-                throw "Unrecognised value type in step definition"
-        }
-    },
-});
+// defineParameterType({
+//     name: "value_type",
+//     regexp: /long|double|string|boolean|datetime/,
+//     transformer: s => {
+//         switch (s) {
+//             case "long":
+//                 return AttributeType.ValueType.LONG
+//             case "double":
+//                 return AttributeType.ValueType.DOUBLE
+//             case "string":
+//                 return AttributeType.ValueType.STRING
+//             case "boolean":
+//                 return AttributeType.ValueType.BOOLEAN
+//             case "datetime":
+//                 return AttributeType.ValueType.DATETIME
+//             default:
+//                 throw "Unrecognised value type in step definition"
+//         }
+//     },
+// });
 
 defineParameterType({
     name: "var",
@@ -133,11 +133,11 @@ defineParameterType({
     transformer: s => s
 });
 
-defineParameterType({
-    name: "transaction_type",
-    regexp: /read|write/,
-    transformer: s => s === "read" ? TransactionType.READ : TransactionType.WRITE
-});
+// defineParameterType({
+//     name: "transaction_type",
+//     regexp: /read|write/,
+//     transformer: s => s === "read" ? TransactionType.READ : TransactionType.WRITE
+// });
 
 export enum RootLabel {
     ATTRIBUTE,

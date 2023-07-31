@@ -35,6 +35,10 @@ export class TypeDBDatabaseImpl implements Database {
         this._nativeObject = native;
     }
 
+    public native(): object {
+        return this._nativeObject;
+    }
+
     get name(): string {
         if (this._nativeObject == null) throw new TypeDBClientError(SESSION_CLOSED);  // FIXME DATABASE_DELETED
         return ffi.database_get_name(this._nativeObject);

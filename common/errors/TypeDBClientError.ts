@@ -21,7 +21,7 @@
 
 import {ErrorMessage} from "./ErrorMessage";
 
-const ffi = require("../typedb_client_nodejs");
+const ffi = require("../../typedb_client_nodejs");
 
 export class TypeDBClientError extends Error {
     private readonly _messageTemplate: ErrorMessage;

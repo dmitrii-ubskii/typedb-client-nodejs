@@ -19,6 +19,7 @@
 # under the License.
 #
 
+load("@aspect_rules_ts//ts:defs.bzl", "ts_project")
 load("@vaticle_dependencies//tool/checkstyle:rules.bzl", "checkstyle_test")
 
 exports_files([
@@ -26,6 +27,48 @@ exports_files([
     "ConnectionStepsCluster.ts",
     "ConnectionStepsCore.ts"
 ])
+
+ts_project(
+    name = "connection-steps-base",
+    srcs = ["ConnectionStepsBase.ts"],
+    tsconfig = {
+        "compilerOptions": {
+            "moduleResolution": "node",
+            "esModuleInterop": True,
+        }
+    },
+    declaration = True,
+    deps = [
+        "//:client-nodejs",
+        "//:node_modules/@types/node",
+        "//:node_modules/@cucumber/cucumber",
+        "//test/behaviour/util:util",
+    ],
+    resolve_json_module = True,
+    visibility = ["//visibility:public"],
+)
+
+ts_project(
+    name = "connection-steps-core",
+    srcs = ["ConnectionStepsCore.ts"],
+    tsconfig = {
+        "compilerOptions": {
+            "moduleResolution": "node",
+            "esModuleInterop": True,
+        }
+    },
+    declaration = True,
+    deps = [
+        ":connection-steps-base",
+        "//:client-nodejs",
+        "//:node_modules/@types/node",
+        "//:node_modules/@cucumber/cucumber",
+        "//test/behaviour/util:util",
+    ],
+    resolve_json_module = True,
+    visibility = ["//visibility:public"],
+)
+
 
 checkstyle_test(
     name = "checkstyle",

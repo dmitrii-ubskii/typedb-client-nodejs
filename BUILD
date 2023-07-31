@@ -22,6 +22,7 @@
 exports_files([
     "pnpm-lock.yaml",
     "package.json",
+    "tsconfig.json",
     "package-lock.json",
     "RELEASE_TEMPLATE.md",
     "VERSION",
@@ -29,6 +30,7 @@ exports_files([
 
 load("@aspect_rules_ts//ts:defs.bzl", "ts_project")
 load("@npm//:defs.bzl", "npm_link_all_packages")
+
 npm_link_all_packages(name = "node_modules")
 
 genrule(
@@ -41,7 +43,7 @@ genrule(
 
 genrule(
     name = "nodejs-ffi",
-    outs = ["typedb_client_nodejs.node"],
+    outs = ["dist/typedb_client_nodejs.node"],
     srcs = ["@vaticle_typedb_driver_java//rust:typedb_client_nodejs"],
     cmd = "cp $< $@",
     visibility = ["//visibility:public"]
@@ -49,14 +51,16 @@ genrule(
 
 ts_project(
     name = "client-nodejs",
-    srcs = [":nodejs-ffi"] + glob([
+    srcs = glob([
         "*.ts",
         "api/**/*.ts",
         "common/**/*.ts",
         "connection/TypeDBClientImpl.ts",
         "connection/TypeDBDatabase*.ts",
+        "connection/TypeDBSessionImpl.ts",
     ]),
-    tsconfig = "tsconfig.json",
+    assets = [":nodejs-ffi"],
+    tsconfig = ":tsconfig.json",
     declaration = True,
     deps = [
         ":node_modules/@types/node",

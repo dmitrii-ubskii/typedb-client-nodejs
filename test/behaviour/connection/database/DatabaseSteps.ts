@@ -25,93 +25,86 @@ import { assertThrows } from "../../util/Util";
 import { client, THREAD_POOL_SIZE } from "../ConnectionStepsBase";
 import * as assert from "assert";
 
-When("connection create database: {word}", async (name: string) => {
-    await client.databases.create(name);
+When("connection create database: {word}", (name: string) => {
+    client.databases.create(name);
 });
 
-When("connection create database(s):", async (names: DataTable) => {
+When("connection create database(s):", (names: DataTable) => {
     for (const name of names.raw()) {
-        await client.databases.create(name[0]);
+        client.databases.create(name[0]);
     }
 });
 
-When("connection create databases in parallel:", async (names: DataTable) => {
+When("connection create databases in parallel:", (names: DataTable) => {
     assert.ok(THREAD_POOL_SIZE >= names.raw().length);
-    const creations: Promise<void>[] = [];
     for (const name of names.raw()) {
-        creations.push(client.databases.create(name[0]));
-    }
-    await Promise.all(creations);
-});
-
-When("connection delete database: {word}", async (name: string) => {
-    const db = await client.databases.get(name);
-    await db.delete();
-});
-
-When("connection delete database(s):", async (names: DataTable) => {
-    for (const name of names.raw()) {
-        const db = await client.databases.get(name[0]);
-        await db.delete();
+        client.databases.create(name[0]);
     }
 });
 
-Then("connection delete database; throws exception: {word}", async (name: string) => {
-    await assertThrows(async () => {
-        const db = await client.databases.get(name);
-        await db.delete();
+When("connection delete database: {word}", (name: string) => {
+    const db = client.databases.get(name);
+    db.delete();
+});
+
+When("connection delete database(s):", (names: DataTable) => {
+    for (const name of names.raw()) {
+        const db = client.databases.get(name[0]);
+        db.delete();
+    }
+});
+
+Then("connection delete database; throws exception: {word}", (name: string) => {
+    assertThrows(() => {
+        client.databases.get(name[0]).delete();
     });
 });
 
-Then("connection delete database(s); throws exception", async (names: DataTable) => {
+Then("connection delete database(s); throws exception", (names: DataTable) => {
     for (const name of names.raw()) {
-        await assertThrows(async () => {
-            const db = await client.databases.get(name[0]);
-            await db.delete();
+        assertThrows(() => {
+            client.databases.get(name[0]).delete();
         });
     }
 });
 
-When("connection delete databases in parallel:", async (names: DataTable) => {
+When("connection delete databases in parallel:", (names: DataTable) => {
     assert.ok(THREAD_POOL_SIZE >= names.raw().length);
-    const deletions: Promise<void>[] = [];
     for (const name of names.raw()) {
-        deletions.push((await client.databases.get(name[0])).delete());
-    }
-    await Promise.all(deletions);
-});
-
-When("connection delete all databases", async () => {
-    const databases = await client.databases.all();
-    for (const db of databases) {
-        await db.delete();
+        client.databases.get(name[0]).delete();
     }
 });
 
-Then("connection has database: {word}", async (name: string) => {
+When("connection delete all databases", () => {
+    for (const db of client.databases.all()) {
+        db.delete();
+    }
+});
+
+Then("connection has database: {word}", (name: string) => {
     const databases = client.databases.all();
     assert.ok(databases.some(x => x.name === name));
 });
 
-Then("connection has database(s):", async (names: DataTable) => {
+Then("connection has database(s):", (names: DataTable) => {
     const databases = client.databases.all();
     names.raw().forEach(name => {
         assert.ok(databases.some(x => x.name === name[0]));
     });
 });
 
-Then("connection does not have database: {word}", async (name: string) => {
-    assert.ok(!(await client.databases.contains(name)));
+Then("connection does not have database: {word}", (name: string) => {
+    assert.ok(!(client.databases.contains(name)));
 });
 
-Then("connection does not have database(s):", async (names: DataTable) => {
+Then("connection does not have database(s):", (names: DataTable) => {
     const databases = client.databases.all();
     names.raw().forEach(name => {
         assert.ok(!databases.some(x => x.name === name[0]));
     });
 });
 
-Given("connection does not have any database", async () => {
+Given("connection does not have any database", () => {
     const databases = client.databases.all();
     assert.ok(databases.length === 0)
 });

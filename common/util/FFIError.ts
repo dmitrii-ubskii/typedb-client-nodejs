@@ -21,7 +21,7 @@
 
 import {TypeDBClientError} from "../errors/TypeDBClientError";
 
-const ffi = require("../typedb_client_nodejs");
+const ffi = require("../../typedb_client_nodejs");
 
 export function checkFFIError() {
     if (ffi.check_error()) {

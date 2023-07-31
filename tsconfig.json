@@ -69,7 +69,7 @@
     "forceConsistentCasingInFileNames": true  /* Disallow inconsistently-cased references to the same file. */
   },
   "include": [
-//    "typedb_client_nodejs.node",
+    "typedb_client_nodejs.node",
     "dependencies_internal.ts",
     "index.ts",
     "TypeDB.ts",

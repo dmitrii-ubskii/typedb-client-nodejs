@@ -28,6 +28,7 @@ import {SessionType, TypeDBSession} from "../api/connection/TypeDBSession";
 import {TypeDBOptions} from "../api/connection/TypeDBOptions";
 // import {UserManagerImpl} from "../user/UserManagerImpl";
 import {checkFFIError} from "../common/util/FFIError";
+import {TypeDBSessionImpl} from "./TypeDBSessionImpl";
 
 const ffi = require("../typedb_client_nodejs");
 
@@ -57,7 +58,7 @@ export class TypeDBClientImpl implements TypeDBClient {
     }
 
     isOpen(): boolean {
-        return ffi.isOpen(this._nativeObject);
+        return ffi.connection_is_open(this._nativeObject);
     }
 
     get databases(): DatabaseManager {
@@ -70,8 +71,7 @@ export class TypeDBClientImpl implements TypeDBClient {
 
     session(database: string, type: SessionType, options?: TypeDBOptions): TypeDBSession {
         if (!options) options = new TypeDBOptions();
-        throw type; // FIXME
-        // return new TypeDBSessionImpl(this.databases().get(database), type, options);
+        return new TypeDBSessionImpl(this.databases.get(database), type, options);
     }
 
     close(): void {

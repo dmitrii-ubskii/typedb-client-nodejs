@@ -14,8 +14,6 @@ D api/concept/type/RelationType.ts
 D api/concept/type/RoleType.ts
 D api/concept/type/ThingType.ts
 D api/concept/type/Type.ts
-D api/connection/TypeDBSession.ts
-D api/connection/TypeDBTransaction.ts
 D api/logic/Explanation.ts
 D api/logic/LogicManager.ts
 D api/logic/Rule.ts
@@ -38,8 +36,6 @@ D concept/type/RelationTypeImpl.ts
 D concept/type/RoleTypeImpl.ts
 D concept/type/ThingTypeImpl.ts
 D concept/type/TypeImpl.ts
-D connection/TypeDBSessionImpl.ts
-D connection/TypeDBTransactionImpl.ts
 D logic/ExplanationImpl.ts
 D logic/LogicManagerImpl.ts
 D logic/RuleImpl.ts
@@ -62,10 +58,6 @@ D test/behaviour/concept/type/relationtype/BUILD
 D test/behaviour/concept/type/relationtype/RelationTypeSteps.ts
 D test/behaviour/concept/type/thingtype/BUILD
 D test/behaviour/concept/type/thingtype/ThingTypeSteps.ts
-D test/behaviour/connection/session/BUILD
-D test/behaviour/connection/session/SessionSteps.ts
-D test/behaviour/connection/transaction/BUILD
-D test/behaviour/connection/transaction/TransactionSteps.ts
 D test/behaviour/connection/user/BUILD
 D test/behaviour/connection/user/UserSteps.ts
 D test/behaviour/typeql/BUILD

@@ -19,7 +19,7 @@
  * under the License.
  */
 
-const ffi = require("../typedb_client_nodejs");
+const ffi = require("../../typedb_client_nodejs");
 
 export class TypeDBCredential {
     readonly nativeObject: object;

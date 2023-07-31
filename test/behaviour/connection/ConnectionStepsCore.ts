@@ -19,31 +19,44 @@
  * under the License.
  */
 
-import {After, AfterAll, Before, BeforeAll} from "@cucumber/cucumber";
-import {TypeDB, TypeDBOptions} from "../../../dist";
+import {After, Before, BeforeAll} from "@cucumber/cucumber";
+import {TypeDB, TypeDBClient, TypeDBOptions} from "../../../dist";
 import {
-    afterAllBase,
     afterBase,
     beforeBase,
-    setClient,
+    client,
+    createDefaultClient,
+    setClientFn,
+    setDefaultClientFn,
     setSessionOptions,
     setTransactionOptions
 } from "./ConnectionStepsBase";
 
 BeforeAll(() => {
-    setClient(TypeDB.coreClient());
-});
-
-AfterAll(async () => {
-    await afterAllBase()
+    setClientFn((username, password) => {
+        throw new Error("Core client does not support authentication");
+    });
+    setDefaultClientFn(() => TypeDB.coreClient());
+    setSessionOptions(new TypeDBOptions({"infer": true}));
+    setTransactionOptions(new TypeDBOptions({"infer": true}));
 });
 
 Before(async () => {
-    await beforeBase();
-    setSessionOptions(TypeDBOptions.core({"infer": true}));
-    setTransactionOptions(TypeDBOptions.core({"infer": true}));
+    beforeBase();
+    clearDB();
 });
 
 After(async () => {
-    await afterBase()
+    afterBase();
+    clearDB()
 });
+
+async function clearDB() {
+    // TODO: reset the database through the TypeDB runner once it exists
+    createDefaultClient();
+    const databases = client.databases.all();
+    for (const db of databases) {
+        db.delete();
+    }
+    client.close();
+}

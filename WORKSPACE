@@ -103,6 +103,11 @@ nodejs_register_toolchains(
 load("@aspect_rules_js//npm:repositories.bzl", "npm_translate_lock")
 npm_translate_lock(
     name = "npm",
+    bins = {
+        "@cucumber/cucumber": {
+            "cucumber-js": "./bin/cucumber-js",
+        },
+    },
     pnpm_lock = "//:pnpm-lock.yaml",
 )
 
