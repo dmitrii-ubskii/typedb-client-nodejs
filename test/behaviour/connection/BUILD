@@ -21,6 +21,7 @@
 
 load("@aspect_rules_ts//ts:defs.bzl", "ts_project")
 load("@vaticle_dependencies//tool/checkstyle:rules.bzl", "checkstyle_test")
+load("//test/behaviour:rules.bzl", "behaviour_test_ts_config")
 
 exports_files([
     "ConnectionStepsBase.ts",
@@ -31,12 +32,7 @@ exports_files([
 ts_project(
     name = "connection-steps-base",
     srcs = ["ConnectionStepsBase.ts"],
-    tsconfig = {
-        "compilerOptions": {
-            "moduleResolution": "node",
-            "esModuleInterop": True,
-        }
-    },
+    tsconfig = behaviour_test_ts_config(),
     declaration = True,
     deps = [
         "//:client-nodejs",
@@ -51,12 +47,23 @@ ts_project(
 ts_project(
     name = "connection-steps-core",
     srcs = ["ConnectionStepsCore.ts"],
-    tsconfig = {
-        "compilerOptions": {
-            "moduleResolution": "node",
-            "esModuleInterop": True,
-        }
-    },
+    tsconfig = behaviour_test_ts_config(),
+    declaration = True,
+    deps = [
+        ":connection-steps-base",
+        "//:client-nodejs",
+        "//:node_modules/@types/node",
+        "//:node_modules/@cucumber/cucumber",
+        "//test/behaviour/util:util",
+    ],
+    resolve_json_module = True,
+    visibility = ["//visibility:public"],
+)
+
+ts_project(
+    name = "connection-steps-cluster",
+    srcs = ["ConnectionStepsCluster.ts"],
+    tsconfig = behaviour_test_ts_config(),
     declaration = True,
     deps = [
         ":connection-steps-base",

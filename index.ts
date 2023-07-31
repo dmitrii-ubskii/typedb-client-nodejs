@@ -27,6 +27,7 @@ export * from "./api/connection/database/DatabaseManager";
 export * from "./api/connection/TypeDBClient";
 export * from "./api/connection/TypeDBCredential";
 export * from "./api/connection/TypeDBOptions";
+export * from "./api/connection/TypeDBSession";
 
 export * from "./common/errors/ErrorMessage";
 export * from "./common/errors/TypeDBClientError";

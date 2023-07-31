@@ -23,7 +23,7 @@ load("@aspect_rules_ts//ts:defs.bzl", "ts_project")
 load("@vaticle_dependencies//tool/checkstyle:rules.bzl", "checkstyle_test")
 load("//test/behaviour:rules.bzl", "typedb_behaviour_node_test", "behaviour_test_ts_config")
 
-exports_files(["DatabaseSteps.ts"])
+exports_files(["SessionSteps.ts"])
 
 checkstyle_test(
     name = "checkstyle",
@@ -32,12 +32,13 @@ checkstyle_test(
 )
 
 ts_project(
-    name = "database-steps",
-    srcs = ["DatabaseSteps.ts"],
+    name = "session-steps",
+    srcs = ["SessionSteps.ts"],
     tsconfig = behaviour_test_ts_config(),
     deps = [
         "//:client-nodejs",
         "//:node_modules/@cucumber/cucumber",
+        "//test/behaviour/config:parameters",
         "//test/behaviour/util:util",
         "//test/behaviour/connection:connection-steps-base",
     ],
@@ -47,6 +48,9 @@ ts_project(
 
 typedb_behaviour_node_test(
     name = "test",
-    features = ["@vaticle_typedb_behaviour//connection:database.feature"],
-    data = [":database-steps"],
+    features = ["@vaticle_typedb_behaviour//connection:session.feature"],
+    data = [
+        ":session-steps",
+        "//test/behaviour/connection/database:database-steps",
+    ],
 )

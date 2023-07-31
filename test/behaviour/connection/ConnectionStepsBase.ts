@@ -80,7 +80,7 @@ export function beforeBase() {
 }
 
 export function afterBase() {
-    if (client.isOpen()) {
+    if (client && client.isOpen()) {
         client.close();
     }
 }

@@ -24,10 +24,10 @@ import { TypeDBCredential } from "./api/connection/TypeDBCredential";
 import { TypeDBClientImpl } from "./connection/TypeDBClientImpl";
 
 export namespace TypeDB {
+    export const CORE_DEFAULT_ADDRESS = "localhost:1729";
+    export const CLUSTER_DEFAULT_ADDRESS = "localhost:11729";
 
-    export const DEFAULT_ADDRESS = "127.0.0.1:1729";
-
-    export function coreClient(address: string = DEFAULT_ADDRESS): TypeDBClient {
+    export function coreClient(address: string = CORE_DEFAULT_ADDRESS): TypeDBClient {
         return TypeDBClientImpl.openPlaintext(address);
     }
 

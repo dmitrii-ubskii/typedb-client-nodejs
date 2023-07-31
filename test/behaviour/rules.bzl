@@ -21,6 +21,16 @@
 
 load("@npm//:@cucumber/cucumber/package_json.bzl", cucumber_bin = "bin")
 
+def behaviour_test_ts_config():
+    return {
+        "compilerOptions": {
+            "target": "es2019",
+            "module": "commonjs",
+            "moduleResolution": "node",
+            "esModuleInterop": True,
+        }
+    }
+
 def node_cucumber_test(name, features, data, steps, **kwargs):
     cucumber_bin.cucumber_js_test(
         name = name,
@@ -28,7 +38,7 @@ def node_cucumber_test(name, features, data, steps, **kwargs):
         no_copy_to_bin = features,
         fixed_args = [
             "--publish-quiet", "--strict",
-            "--tags 'not @ignore and not @ignore-typedb-client-nodejs and not @ignore-client-nodejs'",
+            "--tags 'not @ignore and not @ignore-typedb and not @ignore-typedb-client-nodejs and not @ignore-client-nodejs'",
             "--require", "test/**/*.js",
         ] + ["$(location {})".format(feature) for feature in features],
         **kwargs,

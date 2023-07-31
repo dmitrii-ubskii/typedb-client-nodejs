@@ -19,31 +19,53 @@
  * under the License.
  */
 
-import {After, AfterAll, Before, BeforeAll} from "@cucumber/cucumber";
-import {TypeDB, TypeDBCredential, TypeDBOptions} from "../../../dist";
+import {After, Before, BeforeAll} from "@cucumber/cucumber";
+import {TypeDB, TypeDBClient, TypeDBCredential, TypeDBOptions} from "../../../dist";
 import {
-    afterAllBase,
     afterBase,
     beforeBase,
-    setClient,
+    client,
+    createDefaultClient,
+    setClientFn,
+    setDefaultClientFn,
     setSessionOptions,
     setTransactionOptions
 } from "./ConnectionStepsBase";
+import assert from "assert";
 
-BeforeAll(async () => {
-    setClient(await TypeDB.clusterClient([TypeDB.DEFAULT_ADDRESS], new TypeDBCredential("admin", "password", process.env.ROOT_CA)));
+BeforeAll(() => {
+    setDefaultClientFn(() =>
+        TypeDB.clusterClient([TypeDB.CLUSTER_DEFAULT_ADDRESS], new TypeDBCredential("admin", "password", process.env.ROOT_CA))
+    )
+    setClientFn((username, password) =>
+        TypeDB.clusterClient([TypeDB.CLUSTER_DEFAULT_ADDRESS], new TypeDBCredential(username, password, process.env.ROOT_CA))
+    );
+    setSessionOptions(new TypeDBOptions({"infer": true}));
+    setTransactionOptions(new TypeDBOptions({"infer": true}));
 });
 
-AfterAll(async () => {
-    await afterAllBase()
+Before(() => {
+    beforeBase();
+    clearDB();
 });
 
-Before(async () => {
-    await beforeBase();
-    setSessionOptions(TypeDBOptions.cluster({"infer": true}));
-    setTransactionOptions(TypeDBOptions.cluster({"infer": true}));
+After(() => {
+    afterBase();
+    clearDB()
 });
 
-After(async() => {
-    await afterBase()
-});
+function clearDB() {
+    // TODO: reset the database through the TypeDB runner once it exists
+    createDefaultClient();
+    const databases = client.databases.all();
+    for (const db of databases) {
+        db.delete();
+    }
+    // const users = client.users.all();
+    // for (const user of users) {
+    //     if (user.username != "admin") {
+    //         client.users.delete(user.username);
+    //     }
+    // }
+    client.close();
+}
