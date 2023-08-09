@@ -19,34 +19,36 @@
  * under the License.
  */
 
+// import {ConceptManager} from "../concept/ConceptManager";
+// import {LogicManager} from "../logic/LogicManager";
+// import {QueryManager} from "../query/QueryManager";
 import {TypeDBOptions} from "./TypeDBOptions";
-import {TransactionType, TypeDBTransaction} from "./TypeDBTransaction";
 
 const ffi = require("../../typedb_client_nodejs");
 
-export interface TypeDBSession {
+export interface TypeDBTransaction {
     isOpen(): boolean;
 
-    readonly type: SessionType;
+    readonly type: TransactionType;
 
     readonly options: TypeDBOptions;
 
-    readonly database_name: string;
+    // readonly concepts: ConceptManager;
 
-    transaction(type: TransactionType, options?: TypeDBOptions): TypeDBTransaction;
+    // readonly logic: LogicManager;
+
+    // readonly query: QueryManager;
+
+    commit(): void;
+
+    rollback(): void;
 
     close(): void;
 }
 
-export interface SessionType {
-    isData(): boolean;
-
-    isSchema(): boolean;
-}
-
-export class SessionType {
-    static DATA = new SessionType(ffi.Data);
-    static SCHEMA = new SessionType(ffi.Schema);
+export class TransactionType {
+    static READ = new TransactionType(ffi.Read);
+    static WRITE = new TransactionType(ffi.Write);
 
     private readonly _type: number;
 
@@ -58,11 +60,11 @@ export class SessionType {
         return this._type;
     }
 
-    isData(): boolean {
-        return this == SessionType.DATA;
+    isRead(): boolean {
+        return this == TransactionType.READ;
     }
 
-    isSchema(): boolean {
-        return this == SessionType.SCHEMA;
+    isWrite(): boolean {
+        return this == TransactionType.WRITE;
     }
 }

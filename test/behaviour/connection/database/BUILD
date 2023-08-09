@@ -32,14 +32,14 @@ checkstyle_test(
 )
 
 ts_project(
-    name = "database-steps",
+    name = "steps",
     srcs = ["DatabaseSteps.ts"],
     tsconfig = behaviour_test_ts_config(),
     deps = [
         "//:client-nodejs",
         "//:node_modules/@cucumber/cucumber",
         "//test/behaviour/util:util",
-        "//test/behaviour/connection:connection-steps-base",
+        "//test/behaviour/connection:steps-base",
     ],
     resolve_json_module = True,
     visibility = ["//visibility:public"],
@@ -48,5 +48,5 @@ ts_project(
 typedb_behaviour_node_test(
     name = "test",
     features = ["@vaticle_typedb_behaviour//connection:database.feature"],
-    data = [":database-steps"],
+    data = [":steps"],
 )

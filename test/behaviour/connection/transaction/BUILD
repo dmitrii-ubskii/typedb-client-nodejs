@@ -31,7 +31,7 @@ checkstyle_test(
 
 ts_project(
     name = "steps",
-    srcs = ["SessionSteps.ts"],
+    srcs = ["TransactionSteps.ts"],
     tsconfig = behaviour_test_ts_config(),
     deps = [
         "//:client-nodejs",
@@ -46,10 +46,9 @@ ts_project(
 
 typedb_behaviour_node_test(
     name = "test",
-    features = ["@vaticle_typedb_behaviour//connection:session.feature"],
+    features = ["@vaticle_typedb_behaviour//connection:transaction.feature"],
     data = [
         ":steps",
         "//test/behaviour/connection/database:steps",
-        "//test/behaviour/connection/transaction:steps",
     ],
 )

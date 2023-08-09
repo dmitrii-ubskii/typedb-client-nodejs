@@ -22,10 +22,10 @@
 import {Database} from "../api/connection/database/Database";
 import {TypeDBOptions} from "../api/connection/TypeDBOptions";
 import {SessionType, TypeDBSession} from "../api/connection/TypeDBSession";
-// import {TransactionType, TypeDBTransaction} from "../api/connection/TypeDBTransaction";
+import {TransactionType, TypeDBTransaction} from "../api/connection/TypeDBTransaction";
 // import {ErrorMessage} from "../common/errors/ErrorMessage";
 // import {TypeDBClientError} from "../common/errors/TypeDBClientError";
-// import {TypeDBTransactionImpl} from "./TypeDBTransactionImpl";
+import {TypeDBTransactionImpl} from "./TypeDBTransactionImpl";
 // import SESSION_CLOSED = ErrorMessage.Client.SESSION_CLOSED;
 import {checkFFIError} from "../common/util/FFIError";
 import {TypeDBDatabaseImpl} from "./TypeDBDatabaseImpl";
@@ -38,12 +38,15 @@ export class TypeDBSessionImpl implements TypeDBSession {
     private readonly _type: SessionType;
     private readonly _options: TypeDBOptions;
 
-    constructor(database: Database, type: SessionType, options: TypeDBOptions) {
-        const database_impl = database as TypeDBDatabaseImpl;
-        this._nativeObject = ffi.session_new(database_impl.native(), type.native(), options.native());
+    constructor(database: TypeDBDatabaseImpl, type: SessionType, options: TypeDBOptions) {
+        this._nativeObject = ffi.session_new(database.native(), type.native(), options.native());
         checkFFIError();
         this._type = type;
         this._options = options;
+    }
+
+    public native(): object {
+        return this._nativeObject;
     }
 
     close() {
@@ -51,8 +54,9 @@ export class TypeDBSessionImpl implements TypeDBSession {
         checkFFIError();
     }
 
-    // async transaction(type: TransactionType, options?: TypeDBOptions): TypeDBTransaction {
-    // }
+    transaction(type: TransactionType, options?: TypeDBOptions): TypeDBTransaction {
+        return new TypeDBTransactionImpl(this, type, options);
+    }
 
     isOpen(): boolean {
         return ffi.session_is_open(this._nativeObject);

@@ -47,12 +47,12 @@ def node_cucumber_test(name, features, data, steps, **kwargs):
 def typedb_behaviour_node_test(name, **kwargs):
     node_cucumber_test(
         name = name + "-core",
-        steps = "@//test/behaviour/connection:connection-steps-core",
+        steps = "@//test/behaviour/connection:steps-core",
         **kwargs,
     )
 
     node_cucumber_test(
         name = name + "-cluster",
-        steps = "@//test/behaviour/connection:connection-steps-cluster",
+        steps = "@//test/behaviour/connection:steps-cluster",
         **kwargs,
     )

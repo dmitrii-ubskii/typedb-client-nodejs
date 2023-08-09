@@ -29,6 +29,7 @@ import {TypeDBOptions} from "../api/connection/TypeDBOptions";
 // import {UserManagerImpl} from "../user/UserManagerImpl";
 import {checkFFIError} from "../common/util/FFIError";
 import {TypeDBSessionImpl} from "./TypeDBSessionImpl";
+import {TypeDBDatabaseImpl} from "./TypeDBDatabaseImpl";
 
 const ffi = require("../typedb_client_nodejs");
 
@@ -71,7 +72,7 @@ export class TypeDBClientImpl implements TypeDBClient {
 
     session(database: string, type: SessionType, options?: TypeDBOptions): TypeDBSession {
         if (!options) options = new TypeDBOptions();
-        return new TypeDBSessionImpl(this.databases.get(database), type, options);
+        return new TypeDBSessionImpl(this.databases.get(database) as TypeDBDatabaseImpl, type, options);
     }
 
     close(): void {

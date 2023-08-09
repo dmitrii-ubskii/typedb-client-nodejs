@@ -30,7 +30,7 @@ exports_files([
 ])
 
 ts_project(
-    name = "connection-steps-base",
+    name = "steps-base",
     srcs = ["ConnectionStepsBase.ts"],
     tsconfig = behaviour_test_ts_config(),
     declaration = True,
@@ -45,12 +45,12 @@ ts_project(
 )
 
 ts_project(
-    name = "connection-steps-core",
+    name = "steps-core",
     srcs = ["ConnectionStepsCore.ts"],
     tsconfig = behaviour_test_ts_config(),
     declaration = True,
     deps = [
-        ":connection-steps-base",
+        ":steps-base",
         "//:client-nodejs",
         "//:node_modules/@types/node",
         "//:node_modules/@cucumber/cucumber",
@@ -61,12 +61,12 @@ ts_project(
 )
 
 ts_project(
-    name = "connection-steps-cluster",
+    name = "steps-cluster",
     srcs = ["ConnectionStepsCluster.ts"],
     tsconfig = behaviour_test_ts_config(),
     declaration = True,
     deps = [
-        ":connection-steps-base",
+        ":steps-base",
         "//:client-nodejs",
         "//:node_modules/@types/node",
         "//:node_modules/@cucumber/cucumber",
